@@ -1,37 +1,106 @@
-name: CI
+name: Bililive-go Android Build
 on:
+  workflow_dispatch:
   push:
     branches:
-      - '*'
-  pull_request:
-    branches:
-      - '*'
+      - main
+    tags:
+      - 'v*'
+
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      # 前端环境准备
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.12.1
+
+      - name: Check Node.js version
+        run: node -v
+
+      # 后端环境准备
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.19
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2.4.0
-      - name: Build
-        run: make build-web bililive
-  test:
+
+      - name: Check Go version
+        run: go version
+
+      # 安装 FFmpeg
+      - name: Install FFmpeg
+        run: |
+          sudo yum install -y epel-release rpm
+          sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+          sudo yum repolist
+          sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+          sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-1.el7.nux.noarch.rpm
+          sudo yum repolist
+          sudo yum install -y ffmpeg
+
+      # 克隆代码
+      - name: Clone repository
+        uses: actions/checkout@v2
+
+      # 设置环境变量
+      - name: Set environment variables
+        working-directory: bililive-go
+        run: |
+          echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          echo "ANDROID_NDK_VERSION=r25c" >> $GITHUB_ENV
+
+      # 安装 Android NDK
+      - name: Install Android NDK
+        working-directory: bililive-go
+        run: |
+          wget https://dl.google.com/android/repository/android-ndk-${{ env.ANDROID_NDK_VERSION }}-linux.zip
+          unzip -q android-ndk-${{ env.ANDROID_NDK_VERSION }}-linux.zip
+          echo "ANDROID_NDK_ROOT=$(pwd)/android-ndk-${{ env.ANDROID_NDK_VERSION }}" >> $GITHUB_ENV
+
+      # 构建前端页面
+      - name: Build web
+        working-directory: bililive-go
+        run: make build-web
+
+      # 编译 bililive-go 项目
+      - name: Build bililive-go for Android
+        working-directory: bililive-go
+        run: |
+          # 设置交叉编译环境
+          export GOOS=android
+          export CGO_ENABLED=0 # 不需要编译 FFmpeg，禁用 CGO
+          export CC=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm64-v8a-linux-android21-clang
+          export CXX=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm64-v8a-linux-android21-clang++
+
+          # 编译二进制文件
+          mkdir -p bin
+          go build -tags release \
+            -ldflags "-X github.com/bililive-go/bililive-go/src/consts.AppVersion=${{ env.GIT_TAG }}" \
+            -o bin/bililive-go-android-arm64 \
+            ./src/cmd/bililive/
+
+      # 上传 Android 二进制文件
+      - name: Upload Android binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: bililive-go-android-binaries
+          path: bililive-go/bin/bililive-go-android-arm64
+
+  release:
+    needs: build-android
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
         with:
-          go-version: 1.19
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2.4.0
-      - name: Test
-        run: make build-web test
-      - name: Codecov
-        uses: codecov/codecov-action@v2
+          name: bililive-go-android-binaries
+          path: bin
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bin/bililive-go-android-arm64
+          prerelease: ${{ contains(github.ref, 'rc') }}
