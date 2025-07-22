@@ -41,7 +41,7 @@ jobs:
 
       # 设置环境变量
       - name: Set environment variables
-        working-directory: bililive-go
+        #working-directory: bililive-go
         run: |
           pwd
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
