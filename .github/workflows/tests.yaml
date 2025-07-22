@@ -39,6 +39,12 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
+      # 确保工作目录存在
+      - name: Ensure working directory exists
+        run: |
+          mkdir -p /home/runner/work/bililive-go/bililive-go
+          cd /home/runner/work/bililive-go/bililive-go
+
       # 设置环境变量
       - name: Set environment variables
         working-directory: bililive-go
