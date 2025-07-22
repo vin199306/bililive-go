@@ -32,6 +32,7 @@ jobs:
       - name: Check Go version
         run: |
           go version
+          cd /home/runner/work/bililive-go
           pwd
           ls -a
 
@@ -51,6 +52,7 @@ jobs:
         run: |
           pwd
           ls -a
+          cd /home/runner/work/bililive-go
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
           echo "ANDROID_NDK_VERSION=r25c" >> $GITHUB_ENV
 
