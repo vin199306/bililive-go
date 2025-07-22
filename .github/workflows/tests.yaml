@@ -83,8 +83,8 @@ jobs:
           # 设置交叉编译环境
           export GOOS=android
           export CGO_ENABLED=0 # 不需要编译 FFmpeg，禁用 CGO
-          export CC=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm64-v8a-linux-android21-clang
-          export CXX=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm64-v8a-linux-android21-clang++
+          export CC=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android29-clang
+          export CXX=${{ env.ANDROID_NDK_ROOT }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android29-clang++
 
           # 编译二进制文件
           mkdir -p bin
