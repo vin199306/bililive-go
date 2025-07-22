@@ -1,6 +1,11 @@
 name: Bililive-go Android Build
 on:
   workflow_dispatch:
+  inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: true
+        default: 'false'
   push:
     branches:
       - main
