@@ -43,6 +43,7 @@ jobs:
       - name: Set environment variables
         working-directory: bililive-go
         run: |
+          pwd
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
           echo "ANDROID_NDK_VERSION=r25c" >> $GITHUB_ENV
 
