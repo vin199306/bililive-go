@@ -81,9 +81,9 @@ jobs:
             -o bin/bililive-go-android-arm64 \
             ./src/cmd/bililive/
 
-      # 上传 Android 二进制文件
+      # 上传 Android 二进制文件，使用 v3 版本
       - name: Upload Android binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: bililive-go-android-binaries
           path: bililive-go/bin/bililive-go-android-arm64
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: bililive-go-android-binaries
           path: bin
