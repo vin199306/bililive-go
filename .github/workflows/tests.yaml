@@ -49,8 +49,11 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       # 克隆代码
-      #- name: Clone repository
-      #uses: actions/checkout@v3
+      - name: Clone repository
+        uses: actions/checkout@v3
+        run: |
+          git clone https://github.com/bililive-go/bililive-go.git
+          cd bililive-go
         
       # 设置环境变量
       - name: Set environment variables
